@@ -8,6 +8,9 @@ oui_database = load_oui_database()
 timeout = 5
 max_workers = 10
 
+def is_router(ip):
+    return ip.endswith(".1") or ip.endswith(".254")
+
 def get_all_ips_in_network(network_cidr):
     try:
         network = ipaddress.IPv4Network(network_cidr, strict=False)
@@ -23,10 +26,10 @@ def ping_and_print_info(ip, timeout):
         device_info = get_device_info(ip)
         if device_info is not None:
             print(
-                f"Host: {ip} is up MAC: {device_info['mac']} Vendor: {get_mac_manufacturer(device_info['mac'], oui_database)}"
+                f"Host: {ip} is up MAC: {device_info['mac']} Vendor: {get_mac_manufacturer(device_info['mac'], oui_database)} Is Router: {is_router(ip)}"
             )
         else:
-            print(f"Host: {ip} is up can't get device information")
+            print(f"Host: {ip} is up MAC: Not found Vendor: Not found Is Router: {is_router(ip)}")
     else:
         print(f"Host: {ip} is down")
 

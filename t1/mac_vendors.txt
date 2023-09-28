@@ -23053,3 +23053,6 @@ FCFC48	Apple, Inc.
 FCFE77	Hitachi Reftechno, Inc.
 FCFEC2	Invensys Controls UK Limited
 FCFFAA	IEEE Registration Authority
+E85A8B  Xiaomi Communications Co Ltd
+C42360  Intel Corporate
+304B07  Motorola Mobility LLC, a Lenovo Company

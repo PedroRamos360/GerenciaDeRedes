@@ -9,9 +9,7 @@ def get_device_info(ip_address):
     device_info = []
     for sent, received in results:
         device_info.append({
-            "ip": received.psrc,
             "mac": received.hwsrc,
-            "is_router": received.psrc != ip_address
         })
 
     if len(device_info) == 0:
