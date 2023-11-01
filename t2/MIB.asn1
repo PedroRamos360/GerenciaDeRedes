@@ -12,7 +12,6 @@ exemploMIB MODULE-IDENTITY
     DESCRIPTION "MIB to represent autodiscovery tool information"
     REVISION "202301010000Z"
     DESCRIPTION "Initial version of the MIB"
-    ::= { mib-2 9999 }
 
 exemploObjectInteger OBJECT-TYPE
     SYNTAX Integer32

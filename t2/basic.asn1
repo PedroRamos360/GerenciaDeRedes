@@ -1,0 +1,14 @@
+Example-MIB DEFINITIONS ::= BEGIN
+
+-- Define the OID (Object Identifier) for our MIB
+exampleMIB OBJECT IDENTIFIER ::= { iso(1) org(3) dod(6) internet(1) private(4) enterprises(1) example(12345) }
+
+-- Define a single scalar object (e.g., a variable)
+exampleObject OBJECT-TYPE
+    SYNTAX Integer
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "An example scalar object"
+    ::= { exampleMIB 1 }
+
+END
