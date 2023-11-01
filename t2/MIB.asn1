@@ -1,0 +1,92 @@
+EXEMPLO-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32, IpAddress, Counter32, Gauge32, TimeTicks
+        FROM SNMPv2-SMI;
+        
+
+exemploMIB MODULE-IDENTITY
+    LAST-UPDATED "202301010000Z"
+    ORGANIZATION "Your Company or Team Name"
+    CONTACT-INFO "Your contact email or contact info"
+    DESCRIPTION "MIB to represent autodiscovery tool information"
+    REVISION "202301010000Z"
+    DESCRIPTION "Initial version of the MIB"
+    ::= { mib-2 9999 }
+
+exemploObjectInteger OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION "An example object of type Integer"
+    ::= { exemploMIB 1 }
+
+exemploObjectOctetString OBJECT-TYPE
+    SYNTAX OCTET STRING
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "An example object of type Octet String"
+    ::= { exemploMIB 2 }
+
+exemploObjectIpAddress OBJECT-TYPE
+    SYNTAX IpAddress
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION "An example object of type IpAddress"
+    ::= { exemploMIB 3 }
+
+exemploObjectCounter OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION "An example object of type Counter"
+    ::= { exemploMIB 4 }
+
+exemploObjectGauge OBJECT-TYPE
+    SYNTAX Gauge32
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION "An example object of type Gauge"
+    ::= { exemploMIB 5 }
+
+exemploObjectTimeTicks OBJECT-TYPE
+    SYNTAX TimeTicks
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION "An example object of type TimeTicks"
+    ::= { exemploMIB 6 }
+
+exemploTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF ExemploEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "An example table"
+    ::= { exemploMIB 7 }
+
+exemploEntry OBJECT-TYPE
+    SYNTAX SEQUENCE ExemploEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Entry in the Example table"
+    ::= { exemploMIB 8 }
+
+ExemploEntry ::= SEQUENCE {
+    exemploEntryIndex Integer32,
+    exemploEntryData OCTET STRING
+}
+
+exemploEntryIndex OBJECT-TYPE
+    SYNTAX Integer32 (1..100)
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Index for the Example entry"
+    ::= { exemploEntry 1 }
+
+exemploEntryData OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE (0..255))
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION "Data of the Example entry"
+    ::= { exemploEntry 2 }
+
+END
