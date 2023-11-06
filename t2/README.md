@@ -19,3 +19,7 @@ https://www.simpleweb.org/ietf/mibs/validate/
 - OSS Nokalva: http://www.nokalva.com/company/index.html
 - OSS Nokalva: ASN.1 Reference Books (including a book that can be downloaded in PDF format): http://www.nokalva.com/asn1/booksintro.html
 - XML Encoding Rules for ASN.1 (XER): http://xml.coverpages.org/xer.html
+
+
+## Repositório com uma caralhada de MIBs pra a gente se basear
+- https://github.com/MizaruIT/MIBS/tree/master/ASN1-FORMAT

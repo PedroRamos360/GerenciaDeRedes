@@ -1,0 +1,59 @@
+DEVICE-DISCOVERY DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32, IpAddress, Counter32, Gauge32, TimeTicks, enterprises
+        FROM SNMPv2-SMI;
+
+discoveryMIB MODULE-IDENTITY
+    LAST-UPDATED "202311060000Z"
+    ORGANIZATION "Jordan Warken Bick high technology industries."
+    CONTACT-INFO "Email: ufsm@ufsm.br"
+    DESCRIPTION  "Initial version of this MIB module."
+    REVISION     "202311060000Z"
+    DESCRIPTION  "A MIB module to save information about devices discoreved by the agent."
+    ::= { enterprises 9999 }
+
+
+ipAddress OBJECT-TYPE
+    SYNTAX IpAddress
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "The IP address of the device."
+    ::= { discoveryMIB 1 }
+
+macAddress OBJECT-TYPE
+    SYNTAX OCTET STRING
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "The MAC address of the device."
+    ::= { discoveryMIB 2 }
+
+deviceName OBJECT-TYPE
+    SYNTAX OCTET STRING
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "The name of the device."
+    ::= { discoveryMIB 3 }
+
+status OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "The status of the device."
+    ::= { discoveryMIB 4 }
+
+DeviceEntry ::= SEQUENCE {
+    ipAddress    IpAddress,
+    macAddress   OCTET STRING,
+    deviceName   OCTET STRING,
+    status       Integer32      
+}
+
+deviceTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF DeviceEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "A table of devices discovered by the agent."
+    ::= { discoveryMIB 5 }
+
+END
