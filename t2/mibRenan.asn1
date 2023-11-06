@@ -1,0 +1,31 @@
+EXAMPLE-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32, enterprises
+        FROM SNMPv2-SMI
+    OBJECT-GROUP
+        FROM SNMPv2-CONF;
+
+example MODULE-IDENTITY
+    LAST-UPDATED "200202020000Z"
+    ORGANIZATION "Example, Inc."
+    CONTACT-INFO "Email: info@example.com"
+    DESCRIPTION "A simple example MIB."
+    REVISION     "200202020000Z"
+    DESCRIPTION  "Initial version of this MIB module."
+    ::= { enterprises 9999 }
+
+exampleObject OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "An example object."
+    ::= { example 1 }
+
+exampleGroup OBJECT-GROUP
+    OBJECTS { exampleObject }
+    STATUS current
+    DESCRIPTION "A group containing the example object."
+    ::= { example 2 }
+
+END
