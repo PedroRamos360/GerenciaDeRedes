@@ -8,8 +8,10 @@ oui_database = load_oui_database()
 timeout = 5
 max_workers = 10
 
+
 def is_router(ip):
     return ip.endswith(".1") or ip.endswith(".254")
+
 
 def get_all_ips_in_network(network_cidr):
     try:
@@ -20,32 +22,53 @@ def get_all_ips_in_network(network_cidr):
         return str(e)
 
 
-def ping_and_print_info(ip, timeout):
+def ping_and_print_info(ip, timeout, devices: list):
     response = ping(ip, timeout)
     if response is not None and response is not False:
         device_info = get_device_info(ip)
         if device_info is not None:
+            new_device = {
+                "status": True,
+                "ip": ip,
+                "mac": device_info["mac"],
+                "vendor": get_mac_manufacturer(device_info["mac"], oui_database),
+            }
+            devices.append(new_device)
             print(
                 f"Host: {ip} is up MAC: {device_info['mac']} Vendor: {get_mac_manufacturer(device_info['mac'], oui_database)} Is Router: {is_router(ip)}"
             )
         else:
-            print(f"Host: {ip} is up MAC: Not found Vendor: Not found Is Router: {is_router(ip)}")
+            new_device = {
+                "status": False,
+                "ip": ip,
+                "mac": None,
+                "vendor": None,
+            }
+            devices.append(new_device)
+            print(
+                f"Host: {ip} is up MAC: Not found Vendor: Not found Is Router: {is_router(ip)}"
+            )
     else:
         print(f"Host: {ip} is down")
 
 
-if __name__ == "__main__":
+def run_discovery():
     network_cidr = input("Enter network CIDR: ")
     timeout_input = input("Set timeout for pings (default=5): ")
-    if (timeout_input.strip() != ""):
+    if timeout_input.strip() != "":
         timeout = int(timeout_input)
-    max_workers_input = input ("Set max workers (default=10): ")
-    if (max_workers_input.strip() != ""):
+    max_workers_input = input("Set max workers (default=10): ")
+    if max_workers_input.strip() != "":
         max_workers = int(max_workers_input)
     ips_in_network = get_all_ips_in_network(network_cidr)
 
+    devices = []
+
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(ping_and_print_info, ip, timeout) for ip in ips_in_network]
+        futures = [
+            executor.submit(ping_and_print_info, ip, timeout, devices)
+            for ip in ips_in_network
+        ]
 
     for future in futures:
         future.result()
