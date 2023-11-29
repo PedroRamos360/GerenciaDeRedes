@@ -1,43 +1,31 @@
 from pysnmp.hlapi import *
+import sys
 
-# MIB definition
+sys.path.append("/home/pedro/Github/GerenciaDeRedes")
+
+from t1.device_discovery import run_discovery
+
 MIB = {
     "ipAddress": "1.3.6.1.4.1.9999.1",
     "macAddress": "1.3.6.1.4.1.9999.2",
-    "deviceName": "1.3.6.1.4.1.9999.3",
+    "vendor": "1.3.6.1.4.1.9999.3",
     "status": "1.3.6.1.4.1.9999.4",
     "deviceTable": "1.3.6.1.4.1.9999.5",
 }
-
-# Dummy data
-device_data = [
-    {
-        "ipAddress": "192.168.1.1",
-        "macAddress": "00:11:22:33:44:55",
-        "deviceName": "Device1",
-        "status": 1,
-    },
-    {
-        "ipAddress": "192.168.1.2",
-        "macAddress": "11:22:33:44:55:66",
-        "deviceName": "Device2",
-        "status": 2,
-    },
-]
 
 
 def create_varbind(oid, value):
     return ObjectType(ObjectIdentity(oid), value)
 
 
-def get_device_table():
+def get_device_table(device_data: list):
     return [
         create_varbind(
             MIB["deviceTable"],
             [
                 create_varbind(MIB["ipAddress"], i["ipAddress"]),
                 create_varbind(MIB["macAddress"], i["macAddress"]),
-                create_varbind(MIB["deviceName"], i["deviceName"]),
+                create_varbind(MIB["vendor"], i["deviceName"]),
                 create_varbind(MIB["status"], i["status"]),
             ],
         )
@@ -46,20 +34,35 @@ def get_device_table():
 
 
 def agent():
+    print("SNMP Agent running...")
     for errorIndication, errorStatus, errorIndex, varBinds in bulkCmd(
         SnmpEngine(),
         CommunityData("public"),
-        UdpTransportTarget(("localhost", 161)),
+        UdpTransportTarget(("localhost", 161), timeout=10),
         ContextData(),
         0,
         25,
         ObjectType(ObjectIdentity(MIB["deviceTable"])),
     ):
+        print("Iteration bulkcmd")
+        print(
+            {
+                "errorIndication": errorIndication,
+                "errorStatus": errorStatus,
+                "errorIndex": errorIndex,
+                "varBinds": varBinds,
+            }
+        )
         if errorIndication or errorStatus:
             print(f"Error: {errorIndication}, {errorStatus}, {errorIndex}")
             break
         else:
-            for varBind in varBinds:
+            # Get the list of devices using run_discovery
+            device_list = run_discovery()
+            print(device_list)
+
+            # Respond with the devices
+            for varBind in get_device_table(device_list):
                 print(varBind)
 
 

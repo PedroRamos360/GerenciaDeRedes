@@ -1,12 +1,11 @@
+import sys
+
+sys.path.append("/home/pedro/Github/GerenciaDeRedes")
 from concurrent.futures import ThreadPoolExecutor
 from ping3 import ping
 import ipaddress
-from get_device_info import get_device_info
-from get_manufacturer import load_oui_database, get_mac_manufacturer
-
-oui_database = load_oui_database()
-timeout = 5
-max_workers = 10
+from t1.get_device_info import get_device_info
+from t1.get_manufacturer import load_oui_database, get_mac_manufacturer
 
 
 def is_router(ip):
@@ -23,15 +22,16 @@ def get_all_ips_in_network(network_cidr):
 
 
 def ping_and_print_info(ip, timeout, devices: list):
+    oui_database = load_oui_database()
     response = ping(ip, timeout)
     if response is not None and response is not False:
         device_info = get_device_info(ip)
         if device_info is not None:
             new_device = {
-                "status": True,
-                "ip": ip,
-                "mac": device_info["mac"],
+                "ipAddress": ip,
+                "macAddress": device_info["mac"],
                 "vendor": get_mac_manufacturer(device_info["mac"], oui_database),
+                "status": True,
             }
             devices.append(new_device)
             print(
@@ -39,27 +39,31 @@ def ping_and_print_info(ip, timeout, devices: list):
             )
         else:
             new_device = {
-                "status": False,
-                "ip": ip,
-                "mac": None,
+                "ipAddress": ip,
+                "macAddress": None,
                 "vendor": None,
+                "status": False,
             }
             devices.append(new_device)
             print(
                 f"Host: {ip} is up MAC: Not found Vendor: Not found Is Router: {is_router(ip)}"
             )
     else:
+        new_device = {
+            "ipAddress": ip,
+            "macAddress": None,
+            "vendor": None,
+            "status": False,
+        }
+        devices.append(new_device)
+
         print(f"Host: {ip} is down")
 
 
 def run_discovery():
+    timeout = 5
+    max_workers = 10
     network_cidr = input("Enter network CIDR: ")
-    timeout_input = input("Set timeout for pings (default=5): ")
-    if timeout_input.strip() != "":
-        timeout = int(timeout_input)
-    max_workers_input = input("Set max workers (default=10): ")
-    if max_workers_input.strip() != "":
-        max_workers = int(max_workers_input)
     ips_in_network = get_all_ips_in_network(network_cidr)
 
     devices = []
@@ -72,3 +76,5 @@ def run_discovery():
 
     for future in futures:
         future.result()
+
+    return devices

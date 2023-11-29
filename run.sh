@@ -1,0 +1,1 @@
+python3 t3/main.py
