@@ -21,3 +21,6 @@ Report: Introduced in SNMPv3, a Report message is used to convey information abo
 
 OBS: Acho que a ideia é que a gente rode o programa do t1, guarde os dados na MIB e prepare ela pra
 responder as bulk e get requests do manager
+
+OBS: Provavelmente pra funcionar tem que declarar a nossa MIB no /etc/snmp/snmp.conf ou snmpd.conf
+pelo menos o ranniery fez assim.
