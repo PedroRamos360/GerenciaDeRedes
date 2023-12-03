@@ -55,11 +55,11 @@ mibBuilder.exportSymbols(
     # table column: string index
     exampleTableColumn1=MibTableColumn((1, 3, 6, 4, 1, 5, 1), v2c.OctetString()).setMaxAccess('readcreate'),
     # table column: string value
-    exampleTableColumn2=MibTableColumn((1, 3, 6, 4, 1, 5, 2), v2c.OctetString()).setMaxAccess('readcreate'),
+    exampleTableColumn2=MibTableColumn((1, 3, 6, 4, 1, 5, 2), v2c.IpAddress()).setMaxAccess('readcreate'),
     # table column: integer value with default
-    exampleTableColumn3=MibTableColumn((1, 3, 6, 4, 1, 5, 3), v2c.Integer32(123)).setMaxAccess('readcreate'),
+    exampleTableColumn3=MibTableColumn((1, 3, 6, 4, 1, 5, 3), v2c.OctetString()).setMaxAccess('readcreate'),
     # table column: row status
-    exampleTableStatus=MibTableColumn((1, 3, 6, 4, 1, 5, 4), RowStatus('notExists')).setMaxAccess('readcreate')
+    exampleTableStatus=MibTableColumn((1, 3, 6, 4, 1, 5, 4), v2c.OctetString()).setMaxAccess('readcreate')
 )
 logging.debug('done')
 
@@ -77,9 +77,9 @@ logging.debug('done')
 rowInstanceId = exampleTableEntry.getInstIdFromIndices('example record one')
 mibInstrumentation = snmpContext.getMibInstrum()
 mibInstrumentation.writeVars(
-    ((exampleTableColumn2.name + rowInstanceId, 'hello'),
-     (exampleTableColumn3.name + rowInstanceId, 123456),
-     (exampleTableStatus.name + rowInstanceId, 'createAndGo'))
+    ((exampleTableColumn2.name + rowInstanceId, '192.168.1.1'),
+     (exampleTableColumn3.name + rowInstanceId, '00:1A:2B:3C:4D:5E'),
+     (exampleTableStatus.name + rowInstanceId, 'Fabricante XYZ'))
 )
 
 logging.debug('done')
