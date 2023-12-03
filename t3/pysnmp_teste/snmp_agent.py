@@ -1,73 +1,98 @@
-#Trabalho 3 de Gerência de Redes
-#Grupo: Jordano Xavier, Pedro Henrique Warken e Renan Bick
+from datetime import datetime
+from pysnmp import debug
+from pysnmp.carrier.asyncore.dgram import udp
+from pysnmp.entity import engine, config
+from pysnmp.entity.rfc3413 import cmdrsp, context
+from pysnmp.proto.api import v2c
+from pysnmp.smi import builder, instrum, exval
+import logging
+
+formatting = '[%(asctime)s-%(levelname)s]-(%(module)s) %(message)s'
+
+logging.basicConfig(level=logging.DEBUG, format=formatting, )
+logging.info("Starting....")
+
+snmpEngine = engine.SnmpEngine()
+
+config.addTransport(
+    snmpEngine,
+    udp.domainName,
+    udp.UdpTransport().openServerMode(('0.0.0.0', 161))
+)
+config.addV1System(snmpEngine, 'my-area', 'public')
+config.addVacmUser(snmpEngine,
+                   2,
+                   'my-area',
+                   'noAuthNoPriv',
+                   (1, 3, 6, 4),
+                   (1, 3, 6, 4))
 
 
-from pysnmp.hlapi import *
+snmpContext = context.SnmpContext(snmpEngine)
+logging.debug('Loading __EXAMPLE-MIB module...'),
+mibBuilder = snmpContext.getMibInstrum().getMibBuilder()
+(MibTable,
+ MibTableRow,
+ MibTableColumn,
+ MibScalarInstance) = mibBuilder.importSymbols(
+    'SNMPv2-SMI',
+    'MibTable',
+    'MibTableRow',
+    'MibTableColumn',
+    'MibScalarInstance'
+)
+logging.debug('done')
 
-# Definição das informações dos dispositivos (simuladas)
-devices = [
-    {'ipAddress': '192.168.1.1', 'macAddress': '00:11:22:33:44:55', 'deviceName': 'Device 1', 'status': 1},
-    {'ipAddress': '192.168.1.2', 'macAddress': 'AA:BB:CC:DD:EE:FF', 'deviceName': 'Device 2', 'status': 2}
-]
 
-# Função para retornar a lista de dispositivos descobertos
-def get_device_table():
-    table = []
-    for device in devices:
-        ip = device['ipAddress']
-        mac = bytes.fromhex(device['macAddress'].replace(':', ''))
-        name = device['deviceName']
-        status = device['status']
+RowStatus, = mibBuilder.importSymbols('SNMPv2-TC', 'RowStatus')
 
-        entry = {
-            'ipAddress': ip,
-            'macAddress': OctetString(mac),
-            'deviceName': OctetString(name),
-            'status': Integer32(status)
-        }
-        table.append(entry)
+mibBuilder.exportSymbols(
+    '__EXAMPLE-MIB',
+    # table object
+    exampleTable=MibTable((1, 3, 6, 4, 1)).setMaxAccess('readcreate'),
+    # table row object, also carries references to table indices
+    exampleTableEntry=MibTableRow((1, 3, 6, 4, 1, 5)).setMaxAccess('readcreate').setIndexNames((0, '__EXAMPLE-MIB', 'exampleTableColumn1')),
+    # table column: string index
+    exampleTableColumn1=MibTableColumn((1, 3, 6, 4, 1, 5, 1), v2c.OctetString()).setMaxAccess('readcreate'),
+    # table column: string value
+    exampleTableColumn2=MibTableColumn((1, 3, 6, 4, 1, 5, 2), v2c.OctetString()).setMaxAccess('readcreate'),
+    # table column: integer value with default
+    exampleTableColumn3=MibTableColumn((1, 3, 6, 4, 1, 5, 3), v2c.Integer32(123)).setMaxAccess('readcreate'),
+    # table column: row status
+    exampleTableStatus=MibTableColumn((1, 3, 6, 4, 1, 5, 4), RowStatus('notExists')).setMaxAccess('readcreate')
+)
+logging.debug('done')
 
-    return table
+(exampleTableEntry,
+ exampleTableColumn2,
+ exampleTableColumn3,
+ exampleTableStatus) = mibBuilder.importSymbols(
+    '__EXAMPLE-MIB',
+    'exampleTableEntry',
+    'exampleTableColumn2',
+    'exampleTableColumn3',
+    'exampleTableStatus'
+)
 
-def snmp_agent():
-    # Cria um agente SNMP
-    snmp_engine = SnmpEngine()
+rowInstanceId = exampleTableEntry.getInstIdFromIndices('example record one')
+mibInstrumentation = snmpContext.getMibInstrum()
+mibInstrumentation.writeVars(
+    ((exampleTableColumn2.name + rowInstanceId, 'hello'),
+     (exampleTableColumn3.name + rowInstanceId, 123456),
+     (exampleTableStatus.name + rowInstanceId, 'createAndGo'))
+)
 
-    # Define os OIDs da MIB
-    ipAddress_oid = ObjectIdentity('DEVICE-DISCOVERY', '1')
-    macAddress_oid = ObjectIdentity('DEVICE-DISCOVERY', '2')
-    deviceName_oid = ObjectIdentity('DEVICE-DISCOVERY', '3')
-    status_oid = ObjectIdentity('DEVICE-DISCOVERY', '4')
-    deviceTable_oid = ObjectIdentity('DEVICE-DISCOVERY', '5')
+logging.debug('done')
+logging.debug('Snmp Agent Start')
 
-    # Cria o gerador para responder às solicitações SNMP
-    snmp_gen = getCmd(
-        snmp_engine,
-        CommunityData('public', mpModel=0),
-        UdpTransportTarget(('127.0.0.1', 161)),
-        ContextData(),
-        ObjectType(ipAddress_oid),
-        ObjectType(macAddress_oid),
-        ObjectType(deviceName_oid),
-        ObjectType(status_oid),
-        ObjectType(deviceTable_oid)
-    )
+cmdrsp.GetCommandResponder(snmpEngine, snmpContext)
+cmdrsp.SetCommandResponder(snmpEngine, snmpContext)
+cmdrsp.NextCommandResponder(snmpEngine, snmpContext)
+cmdrsp.BulkCommandResponder(snmpEngine, snmpContext)
+snmpEngine.transportDispatcher.jobStarted(1)
 
-    # Processa as solicitações SNMP
-    for (errorIndication, errorStatus, errorIndex, varBinds) in snmp_gen:
-        if errorIndication:
-            print(errorIndication)
-            break
-        elif errorStatus:
-            print(f'{errorStatus.prettyPrint()} at {errorIndex}')
-            break
-        else:
-            # Retorna a tabela de dispositivos descobertos quando solicitado
-            if varBinds[0][0] == ipAddress_oid:
-                device_table = get_device_table()
-                for entry in device_table:
-                    for oid, value in entry.items():
-                        print(f'{oid} = {value}')
-
-if __name__ == '__main__':
-    snmp_agent()
+try:
+    snmpEngine.transportDispatcher.runDispatcher()
+except:
+    snmpEngine.transportDispatcher.closeDispatcher()
+    raise
