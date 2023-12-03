@@ -48,39 +48,45 @@ RowStatus, = mibBuilder.importSymbols('SNMPv2-TC', 'RowStatus')
 
 mibBuilder.exportSymbols(
     '__EXAMPLE-MIB',
-    # table object
     exampleTable=MibTable((1, 3, 6, 4, 1)).setMaxAccess('readcreate'),
-    # table row object, also carries references to table indices
     exampleTableEntry=MibTableRow((1, 3, 6, 4, 1, 5)).setMaxAccess('readcreate').setIndexNames((0, '__EXAMPLE-MIB', 'exampleTableColumn1')),
-    # table column: string index
     exampleTableColumn1=MibTableColumn((1, 3, 6, 4, 1, 5, 1), v2c.OctetString()).setMaxAccess('readcreate'),
-    # table column: string value
     exampleTableColumn2=MibTableColumn((1, 3, 6, 4, 1, 5, 2), v2c.OctetString()).setMaxAccess('readcreate'),
-    # table column: integer value with default
     exampleTableColumn3=MibTableColumn((1, 3, 6, 4, 1, 5, 3), v2c.Integer32(123)).setMaxAccess('readcreate'),
-    # table column: row status
     exampleTableStatus=MibTableColumn((1, 3, 6, 4, 1, 5, 4), RowStatus('notExists')).setMaxAccess('readcreate')
 )
-logging.debug('done')
+# logging.debug('done')
 
 (exampleTableEntry,
- exampleTableColumn2,
- exampleTableColumn3,
- exampleTableStatus) = mibBuilder.importSymbols(
+ ) = mibBuilder.importSymbols(
     '__EXAMPLE-MIB',
     'exampleTableEntry',
-    'exampleTableColumn2',
-    'exampleTableColumn3',
-    'exampleTableStatus'
 )
 
 rowInstanceId = exampleTableEntry.getInstIdFromIndices('example record one')
 mibInstrumentation = snmpContext.getMibInstrum()
-mibInstrumentation.writeVars(
-    ((exampleTableColumn2.name + rowInstanceId, 'hello'),
-     (exampleTableColumn3.name + rowInstanceId, 123456),
-     (exampleTableStatus.name + rowInstanceId, 'createAndGo'))
+
+
+# Adicionando colunas para IP, Endereço MAC e Fabricante
+exampleTableColumn4 = MibTableColumn((1, 3, 6, 4, 1, 5, 5), v2c.IpAddress()).setMaxAccess('readcreate')
+exampleTableColumn5 = MibTableColumn((1, 3, 6, 4, 1, 5, 6), v2c.OctetString()).setMaxAccess('readcreate')
+exampleTableColumn6 = MibTableColumn((1, 3, 6, 4, 1, 5, 7), v2c.OctetString()).setMaxAccess('readcreate')
+
+mibBuilder.exportSymbols(
+    '__EXAMPLE-MIB',
+    exampleTableColumn4=exampleTableColumn4,
+    exampleTableColumn5=exampleTableColumn5,
+    exampleTableColumn6=exampleTableColumn6
 )
+
+
+mibInstrumentation.writeVars(
+    (
+     (exampleTableColumn4.name + rowInstanceId, '192.168.1.1'),  # Exemplo de IP
+     (exampleTableColumn5.name + rowInstanceId, '00:1A:2B:3C:4D:5E'),  # Exemplo de Endereço MAC
+     (exampleTableColumn6.name + rowInstanceId, 'Fabricante XYZ'))  # Exemplo de Fabricante
+)
+#####################################
 
 logging.debug('done')
 logging.debug('Snmp Agent Start')
