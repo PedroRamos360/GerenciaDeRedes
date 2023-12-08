@@ -31,7 +31,7 @@ def ping_and_print_info(ip, timeout, devices: list):
                 "ipAddress": ip,
                 "macAddress": device_info["mac"],
                 "vendor": get_mac_manufacturer(device_info["mac"], oui_database),
-                "status": True,
+                "status": "on",
             }
             devices.append(new_device)
             print(
@@ -40,9 +40,9 @@ def ping_and_print_info(ip, timeout, devices: list):
         else:
             new_device = {
                 "ipAddress": ip,
-                "macAddress": None,
-                "vendor": None,
-                "status": False,
+                "macAddress": "",
+                "vendor": "",
+                "status": "off",
             }
             devices.append(new_device)
             print(
@@ -51,19 +51,18 @@ def ping_and_print_info(ip, timeout, devices: list):
     else:
         new_device = {
             "ipAddress": ip,
-            "macAddress": None,
-            "vendor": None,
-            "status": False,
+            "macAddress": "",
+            "vendor": "",
+            "status": "off",
         }
         devices.append(new_device)
 
         print(f"Host: {ip} is down")
 
 
-def run_discovery():
+def run_discovery(network_cidr: str):
     timeout = 5
     max_workers = 10
-    network_cidr = input("Enter network CIDR: ")
     ips_in_network = get_all_ips_in_network(network_cidr)
 
     devices = []
