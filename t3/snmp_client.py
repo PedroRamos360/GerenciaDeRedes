@@ -5,29 +5,17 @@ def send_snmp_request():
     target_host = "localhost"
     target_port = 162
     community_string = "public"
-    sys_descr_oid = "1.3.6.1.2.1.1.1.0"  # sysDescr object OID
     sys_descr_oid = "1.3.6.4.1.5.3"  # sysDescr object OID
 
     errorIndication, errorStatus, errorIndex, varBinds = next(
-        bulkCmd(
+        nextCmd(
             SnmpEngine(),
             CommunityData(community_string, mpModel=0),
-            UdpTransportTarget((target_host, target_port)),
+            UdpTransportTarget((target_host, target_port), timeout=30),
             ContextData(),
-            0,
-            25,
             ObjectType(ObjectIdentity(sys_descr_oid)),
         )
     )
-
-    # print(
-    #     {
-    #         "errorIndication": errorIndication,
-    #         "errorStatus": errorStatus,
-    #         "errorIndex": errorIndex,
-    #         "varBinds": varBinds,
-    #     }
-    # )
 
     if errorIndication:
         print(f"Error: {errorIndication}")

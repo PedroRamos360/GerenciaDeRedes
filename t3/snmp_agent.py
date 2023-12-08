@@ -4,6 +4,13 @@ from pysnmp.entity.rfc3413 import cmdrsp, context, cmdgen
 from pysnmp.proto.api import v2c
 from pysnmp import error
 import logging
+import sys
+
+from pysnmp.proto.rfc1155 import ObjectName
+
+sys.path.append("/home/pedro/Github/GerenciaDeRedes")
+
+from t1.device_discovery import run_discovery
 
 formatting = "[%(asctime)s-%(levelname)s]-(%(module)s) %(message)s"
 
@@ -77,32 +84,32 @@ mibInstrumentation.writeVars(
     )
 )
 
-logging.debug("Snmp Agent Start \n")
+logging.debug("== Snmp Agent Start == \n")
 
-logging.debug("IP:192.168.1.1")
-logging.debug("MAC: 00:1A:2B:3C:4D:5E")
-logging.debug("Fabricante: XYZ")
+from pysnmp.proto import rfc1902
 
 
 class MyNextCommandResponder(cmdrsp.NextCommandResponder):
-    def handleMgmtOperation(
-        self,
-        snmpEngine,
-        stateReference,
-        contextName,
-        PDU,
-        acInfo,
-    ):
-        logging.debug("Recebi uma requisição")
+    def handleMgmtOperation(self, snmpEngine, stateReference, contextName, PDU, acInfo):
+        (acFun, acCtx) = acInfo
+        # Construct the desired varbind (1.3.6.4.1.5.3, "ok")
+        print("Buscando dispositivos na rede...")
+        devices = run_discovery("10.0.0.123/29")
+        str_devices = ""
+        for device in devices:
+            mac = device.macAddress
+            str_devices += f"\nIP: {device.ipAddress} STATUS: {device.status} MAC: {device.macAddress} VENDOR: {device.vendor}"
 
-        return cmdrsp.NextCommandResponder.handleMgmtOperation(
-            self,
-            snmpEngine,
-            stateReference,
-            contextName,
-            PDU,
-            acInfo,
+        response_varbind = (
+            rfc1902.ObjectName((1, 3, 6, 4, 1, 5, 4)),
+            rfc1902.OctetString(str_devices),
         )
+
+        # Send the varbind directly
+        self.sendVarBinds(snmpEngine, stateReference, 0, 0, [response_varbind])
+
+        # Release state information
+        self.releaseStateInformation(stateReference)
 
 
 MyNextCommandResponder(snmpEngine, snmpContext)
