@@ -1,12 +1,11 @@
 import sys
 from typing import List
 
-sys.path.append("/home/pedro/Github/GerenciaDeRedes")
 from concurrent.futures import ThreadPoolExecutor
 from ping3 import ping
 import ipaddress
-from t1.get_device_info import get_device_info
-from t1.get_manufacturer import load_oui_database, get_mac_manufacturer
+from get_device_info import get_device_info
+from get_manufacturer import load_oui_database, get_mac_manufacturer
 
 
 def is_router(ip):
@@ -42,29 +41,53 @@ def ping_and_print_info(ip, timeout, devices: list):
                 get_mac_manufacturer(device_info["mac"], oui_database),
                 "on",
             )
+            print(
+                ip,
+                new_device.macAddress,
+                new_device.vendor,
+                new_device.status,
+            )
             devices.append(new_device)
         else:
             new_device = Device(ip, "-", "-", "off")
+            print(
+                new_device.ipAddress,
+                new_device.macAddress,
+                new_device.vendor,
+                new_device.status,
+            )
             devices.append(new_device)
     else:
         new_device = Device(ip, "-", "-", "off")
+        print(
+            new_device.ipAddress,
+            new_device.macAddress,
+            new_device.vendor,
+            new_device.status,
+        )
         devices.append(new_device)
 
 
 def run_discovery(network_cidr: str):
-    timeout = 5
-    max_workers = 10
+    timeout = 0.1
+    max_workers = 1
     ips_in_network = get_all_ips_in_network(network_cidr)
 
     devices: List[Device] = []
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [
-            executor.submit(ping_and_print_info, ip, timeout, devices)
-            for ip in ips_in_network
-        ]
+    # with ThreadPoolExecutor(max_workers=max_workers) as executor:
+    #     futures = [
+    #         executor.submit(ping_and_print_info, ip, timeout, devices)
+    #         for ip in ips_in_network
+    #     ]
 
-    for future in futures:
-        future.result()
+    # for future in futures:
+    #     future.result()
+    for ip in ips_in_network:
+        ping_and_print_info(ip, timeout, devices)
 
     return devices
+
+
+if __name__ == "__main__":
+    run_discovery("192.168.0.1/24")

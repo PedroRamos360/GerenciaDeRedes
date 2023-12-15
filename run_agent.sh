@@ -1,1 +1,1 @@
-python3 t3/snmp_agent.py
+python3 entrega_t3/snmp_agent.py

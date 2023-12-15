@@ -89,8 +89,9 @@ class MyNextCommandResponder(cmdrsp.NextCommandResponder):
     def handleMgmtOperation(self, snmpEngine, stateReference, contextName, PDU, acInfo):
         (acFun, acCtx) = acInfo
         # Construct the desired varbind (1.3.6.4.1.5.3, "ok")
-        print("Buscando dispositivos na rede...")
-        devices = run_discovery("10.0.0.123/29")
+        logging.debug("Buscando dispositivos...")
+        devices = run_discovery("10.0.0.245/28")
+        logging.debug("Busca completa!")
         str_devices = ""
         for device in devices:
             mac = device.macAddress

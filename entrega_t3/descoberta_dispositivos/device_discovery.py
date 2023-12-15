@@ -1,12 +1,12 @@
 import sys
 from typing import List
 
-sys.path.append("/home/pedro/Github/GerenciaDeRedes")
+sys.path.append("/home/pedro/Github/GerenciaDeRedes/entrega_t3/descoberta_dispositivos")
 from concurrent.futures import ThreadPoolExecutor
 from ping3 import ping
 import ipaddress
-from t1.get_device_info import get_device_info
-from t1.get_manufacturer import load_oui_database, get_mac_manufacturer
+from get_device_info import get_device_info
+from get_manufacturer import load_oui_database, get_mac_manufacturer
 
 
 def is_router(ip):
@@ -52,19 +52,12 @@ def ping_and_print_info(ip, timeout, devices: list):
 
 
 def run_discovery(network_cidr: str):
-    timeout = 5
-    max_workers = 10
+    timeout = 0.2
     ips_in_network = get_all_ips_in_network(network_cidr)
 
     devices: List[Device] = []
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [
-            executor.submit(ping_and_print_info, ip, timeout, devices)
-            for ip in ips_in_network
-        ]
-
-    for future in futures:
-        future.result()
+    for ip in ips_in_network:
+        ping_and_print_info(ip, timeout, devices)
 
     return devices
